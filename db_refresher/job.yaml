@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-refresh-job
+  namespace: vulcan-db-refresh
+  labels:
+    app: db-refresh-job
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      name: db-refresh-job
+      labels:
+        app: db-refresh-job
+    spec:
+      initContainers:
+      - name: copying-pgdump
+        image: amazon/aws-cli
+        command:
+          - /bin/sh
+          - -c
+          - |
+            echo "Copying files from elco-int-usva-vulcan-core-pg-backups"
+            aws s3 cp s3://elco-int-usva-vulcan-core-pg-backups/ /pg-dump --recursive
+        volumeMounts:
+          - name: pg-dump
+            mountPath: /pg-dump
+      containers:
+      - name: db-refresh
+        image: gerx24/centos-tools:3.0.0
+        env:
+          - name: PGPASSWORD
+            value: "tieyoQbP97c3YVrUMOMQ"
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            echo "Dropping old database..."
+            PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.int.pincer-project.internal -p 5432 -U root -d postgres -c "
+            SELECT pg_terminate_backend(pid)
+            FROM pg_stat_activity
+            WHERE datname = 'gerson' AND pid <> pg_backend_pid();"
+
+            PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.int.pincer-project.internal -p 5432 -U root -d postgres -c "DROP DATABASE IF EXISTS gerson"
+
+            echo "Creating new database..."
+            PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.int.pincer-project.internal -p 5432 -U root -d postgres -c "CREATE DATABASE gerson;"
+
+            echo "Restoring database..."
+            PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.int.pincer-project.internal -p 5432 -U root -d gerson -f /pg-dump/vulcan_dump_20250512.sql
+
+            echo "Altering schema ownership..."
+            PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.int.pincer-project.internal -p 5432 -U root -d gerson -c "ALTER SCHEMA public OWNER TO vulcan_owner_role; ALTER SCHEMA client_side OWNER TO vulcan_owner_role; ALTER SCHEMA settings OWNER TO vulcan_owner_role;"
+
+            PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.int.pincer-project.internal -p 5432 -U root -d gerson -f /pg-dump/privileges.sql
+        volumeMounts:
+          - name: pg-dump
+            mountPath: /pg-dump
+      volumes:
+      - name: pg-dump
+        emptyDir: {}
+      restartPolicy: OnFailure
+      tolerations:
+        - effect: NoSchedule
+          key: karpenter-node
+          value: "true"
+      serviceAccountName: vulcan-db-refresh
