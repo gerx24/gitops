@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: git@github.com:gerx24/gitops
     path: core/tenants
-    targetRevision: core
+    targetRevision: main
     helm:
       releaseName: tenants
   syncPolicy:
