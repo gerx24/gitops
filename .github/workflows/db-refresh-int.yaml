@@ -1,0 +1,48 @@
+name: Refresh INT database(s) with prod data
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .db_refresh_int/*
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-db
+  cancel-in-progress: true
+
+jobs:
+  get-dbs:
+    runs-on: k8s-mte-amd64
+    outputs:
+      db_list: ${{ steps.get-db-list.outputs.db_list }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Get changed files
+      id: changed-files
+      uses: elc-online/tj-actions-changed-files@v42
+
+    - id: get-db-list
+      env:
+        ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+      run: |
+        changed_filenames_csv=$(echo "$ALL_CHANGED_FILES" | tr ' ' '\n' | grep ".db_refresh_int/" | xargs -I {} basename {} | sed 's/\.[^.]*$//' | tr '\n' ',' | sed 's/,$//')
+        echo "changed filenames: $changed_filenames_csv"
+        echo "db_list=$changed_filenames_csv" >> $GITHUB_OUTPUT
+
+  run-db-imports:
+    name: Run INT DB Refresh
+    needs: get-dbs
+    if: ${{ needs.get-dbs.outputs.db_list != ''}}
+    uses: ./.github/workflows/artifacts-publish.yaml
+    with:
+      database: ${{ needs.get-dbs.outputs.db_list}}
+      environment: int
+      date: $(date +%Y%m%d) #yyyymmdd
