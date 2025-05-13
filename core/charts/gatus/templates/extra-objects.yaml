@@ -1,0 +1,4 @@
+{{- range .Values.extraObjects }}
+---
+{{ include "gatus-monitoring.render" (dict "value" . "context" $) }}
+{{- end }}

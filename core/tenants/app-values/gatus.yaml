@@ -1,0 +1,35 @@
+config:
+# Alerting to Slack
+  alerting:
+    slack:
+      webhook-url: "https://hooks.slack.com/services/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"
+      default-alert:
+        failure-threshold: 1
+        description: "Healthcheck failed"
+        send-on-resolved: true
+
+  homepage-endpoint-default: &homepage-default
+    method: "GET"
+    interval: 1m
+    headers:
+      "cookie": "NM_AE=04042020"
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].status == UP"
+    alerts:
+      - type: custom
+        failure-threshold: 5
+        send-on-resolved: true
+        description: "Health check failed"
+
+  default-ssl-endpoint: &ssl-default
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: slack
+  endpoints:
+    - name: germoral-test
+      url: "https://parapentepuravida.com/"
+      group: germoral
+      <<: *ssl-default

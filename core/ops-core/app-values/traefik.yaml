@@ -1,0 +1,135 @@
+globalArguments:
+  - "--global.sendanonymoususage=false"
+  - "--global.checknewversion=false"
+
+additionalArguments:
+  - "--serversTransport.insecureSkipVerify=true" #allow self-signed certificates
+  - "--log.level=INFO"
+
+deployment:
+  enabled: true
+  replicas: 3
+  annotations: {}
+  podAnnotations: {}
+  additionalContainers: []
+  initContainers: []
+
+ports:
+  web:
+    redirectTo:
+      port: websecure
+      priority: 10
+  websecure:
+    http3:
+      enabled: true
+    advertisedPort: 4443
+    tls:
+      enabled: true
+
+ingressRoute:
+  dashboard:
+    enabled: false
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    ingressClass: traefik-external
+    allowExternalNameServices: true
+  kubernetesIngress:
+    enabled: true
+    allowExternalNameServices: true
+    publishedService:
+      enabled: false
+
+rbac:
+  enabled: true
+
+service:
+  enabled: true
+  type: LoadBalancer
+  annotations: {}
+  labels: {}
+  # spec:
+  #   loadBalancerIP: 192.168.49.2 # this should be an IP in the MetalLB range
+  loadBalancerSourceRanges: []
+  externalIPs: []
+
+extraObjects:
+  - apiVersion: traefik.containo.us/v1alpha1
+    kind: Middleware
+    metadata:
+      name: traefik-dashboard-basicauth
+      namespace: traefik
+    spec:
+      basicAuth:
+        secret: traefik-dashboard-auth
+
+  # - apiVersion: traefik.containo.us/v1alpha1
+  #   kind: IngressRoute
+  #   metadata:
+  #     name: traefik-dashboard
+  #     namespace: traefik
+  #     annotations:
+  #       kubernetes.io/ingress.class: traefik-external
+  #   spec:
+  #     entryPoints:
+  #       - websecure
+  #     routes:
+  #       - match: Host(`traefik.local.gersonplace.com`)
+  #         kind: Rule
+  #         middlewares:
+  #           - name: traefik-dashboard-basicauth
+  #             namespace: traefik
+  #         services:
+  #           - name: api@internal
+  #             kind: TraefikService
+  #     tls:
+  #       secretName: traefik-gersonplace-com-staging-tls
+
+  - apiVersion: traefik.containo.us/v1alpha1
+    kind: IngressRoute
+    metadata:
+      name: traefik-dashboard
+      namespace: traefik
+    spec:
+      entryPoints:
+        - web
+      routes:
+        - match: Host(`traefik.local.gersonplace.com`)
+          kind: Rule
+          services:
+            - name: api@internal
+              kind: TraefikService
+
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: example-ingress
+      namespace: kube-system
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: traefik.local.gersonplace.com
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: traefik
+                    port:
+                      number: 80
+        - host: gatus.local.gersonplace.com
+          http:
+            paths:
+              - path: /gatus
+                pathType: Prefix
+                backend:
+                  service:
+                    name: gatus
+                    port:
+                      number: 80
+      tls:
+        - hosts:
+            - traefik.local.gersonplace.com
+          secretName: traefik-gersonplace-com-staging-tls

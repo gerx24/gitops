@@ -1,0 +1,6 @@
+apiVersion: v2
+name: tenants
+description: An umbrella chart which embeds all tenants apps ArgoCD should install
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

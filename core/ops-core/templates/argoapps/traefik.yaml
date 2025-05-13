@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+  namespace: argocd
+spec:
+  destination:
+    namespace: traefik
+    server: https://kubernetes.default.svc
+  project: core
+  source:
+    repoURL: https://traefik.github.io/charts
+    chart: traefik
+    targetRevision: 27.*
+    helm:
+      releaseName: traefik
+      values: |
+{{ tpl (.Files.Get "app-values/traefik.yaml") . | trim | indent 12 }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,15 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  secretName: traefik-gersonplace-com-staging-tls
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  commonName: "*.local.gersonplace.com"
+  dnsNames:
+  - "local.gersonplace.com"
+  - "*.local.gersonplace.com"

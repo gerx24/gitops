@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gatus
+  namespace: argocd
+spec:
+  destination:
+    namespace: gatus
+    server: https://kubernetes.default.svc
+  project: core
+  source:
+    path: core/charts/gatus
+    repoURL: git@github.com:gerx24/gitops
+    targetRevision: core
+    helm:
+      releaseName: gatus
+      values: |
+{{ tpl (.Files.Get "app-values/gatus.yaml") . | trim | indent 12 }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
