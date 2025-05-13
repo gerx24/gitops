@@ -38,7 +38,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: name=gerx24/runner-tools/centos
+          images: name=gerx24/runner-tools
           tags: type=raw,value=${{ steps.short-sha.outputs.short_sha  }}-${{ matrix.platform }}
 
       - name: 🐳 Build and Push Docker Image to GHCR
@@ -77,6 +77,6 @@ jobs:
       - name: Create and Push Docker Manifest
         run: |
           docker buildx imagetools create \
-            --tag gerx24/runner-tools/centos:${{ needs.build.outputs.short_sha  }} \
-            gerx24/runner-tools/centos:${{ needs.build.outputs.short_sha  }}-amd64 \
-            gerx24/runner-tools/centos:${{ needs.build.outputs.short_sha  }}-arm64
+            --tag gerx24/runner-tools:${{ needs.build.outputs.short_sha }} \
+            gerx24/runner-tools:${{ needs.build.outputs.short_sha }}-amd64 \
+            gerx24/runner-tools:${{ needs.build.outputs.short_sha }}-arm64
