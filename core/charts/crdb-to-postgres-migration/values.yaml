@@ -1,0 +1,32 @@
+schedule:
+  cron: "30 0 * * *"  # Runs at 00:30 UTC
+
+crdb:
+  name: cockroach-database
+  image: cockroachdb/cockroach:v24.2.0
+  mountpath: /cockroach-data/extern/backup
+  port: 26257
+
+postgres:
+  name: postgres-database
+  image: postgres:latest
+  port: 5432
+  secret: crdb-to-postgres-creds
+  db: root
+  user: root
+
+
+pgdumpBucket:
+  name: s3://elco-crdb-to-postgres
+
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::183903597125:role/crdb-to-postgres-usva-role
+    argocd.argoproj.io/sync-wave: "-4"
+  name: "crdb-to-postgres-migration"
+
+secret:
+  name: vulcan-postgres-creds
+  secretkey: eks-int-usva-pincer-project/crdb-to-postgres-creds
+  secretname: crdb-to-postgres-creds

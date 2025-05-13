@@ -1,0 +1,136 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "crdb-to-postgres.fullname" . }}
+  labels:
+    {{- include "crdb-to-postgres.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.schedule.cron }}
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 82800 # 23 hours retained before automatically cleaned up.
+      template:
+        spec:
+          initContainers:
+          - name: copying-crdb-backup-from-s3
+            image: amazon/aws-cli
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Copying files from crdb-to-postgres-bucket-prod"
+              aws s3 cp s3://elco-prod-usva-pincer-cleanse-locality-crdb/crdb_backups/ /backup --recursive
+              aws s3 cp s3://elco-crdb-to-postgres-prod/scripts/ /backup --recursive
+            volumeMounts:
+            - name: cockroach-backup
+              mountPath: backup
+          containers:
+          - name: {{ .Values.crdb.name }}
+            image: {{ .Values.crdb.image }}
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                cockroach start-single-node --insecure --http-port=8080 --port=26257 --store=/cockroach-data &
+                echo "Waiting for CockroachDB to start..." &&
+                while ! curl -s http://localhost:8080/_status/cluster; do
+                  sleep 1;
+                done &&
+                echo "CockroachDB is up and running!" &&
+                cockroach sql --insecure --execute "RESTORE DATABASE vulcan_core_10222024_prod FROM LATEST IN 'nodelocal://1/backup' WITH skip_localities_check;" &&
+                echo "Restore operation completed."
+                sleep 600;
+            volumeMounts:
+            - name: cockroach-backup
+              mountPath: {{ .Values.crdb.mountpath }}
+            ports:
+            - containerPort: 8080
+            - containerPort: {{ .Values.crdb.port }}
+            resources:
+              requests:
+                cpu: 300m
+                memory: 300Mi
+              limits:
+                cpu: 1000m
+                memory: 2000Mi
+          - name: {{ .Values.postgres.name }}
+            image: {{ .Values.postgres.image }}
+            command: ["sh", "-c"]
+            args:
+              - |
+                docker-entrypoint.sh postgres &
+                echo "Waiting for PostgreSQL to start..." &&
+                until pg_isready -h localhost; do
+                  sleep 60;
+                done &&
+                echo "PostgreSQL is up and running!" &&
+                psql -U root -c "CREATE DATABASE vulcan;" &&
+                psql -U root -d vulcan -c "SET search_path TO public;" &&
+                psql -U root -d vulcan -c "CREATE EXTENSION IF NOT EXISTS postgres_fdw;" &&
+                psql -U root -d vulcan -c "CREATE SERVER crdb FOREIGN DATA WRAPPER postgres_fdw OPTIONS (host 'localhost', port '26257', dbname 'vulcan_core_10222024_prod', sslmode 'disable');" &&
+                psql -U root -d vulcan -c "CREATE USER MAPPING FOR root SERVER crdb OPTIONS (user 'root', password '');" &&
+                psql -U root -d vulcan -c "CREATE SCHEMA client_side;" &&
+                psql -U root -d vulcan -c "CREATE SCHEMA settings;" &&
+                psql -U root -d vulcan -c "IMPORT FOREIGN SCHEMA public FROM SERVER crdb INTO public;" &&
+                psql -U root -d vulcan -c "IMPORT FOREIGN SCHEMA client_side FROM SERVER crdb INTO client_side;" &&
+                psql -U root -d vulcan -c "IMPORT FOREIGN SCHEMA settings FROM SERVER crdb INTO settings;" &&
+                psql -U root -d vulcan -f /scripts/postgres-foreign.sql &&
+                echo "Creating foreign_tables..." &&
+                sleep 5 &&
+                psql -U root -d vulcan -f /scripts/postgres-local-from-foreign.sql &&
+                echo "Creating local_tables, dropping foreigh table and renaming tables" &&
+                sleep 5 &&
+                echo "All commands executed" &&
+                sleep 10 &&
+                echo "Vulcan Database dump created at /pg_dump/vulcan_dump_$(date +%Y%m%d).sql" &&
+                pg_dump -U root -d vulcan -f /pg_dump/vulcan_dump_$(date +%Y%m%d).sql &&
+                echo "vulcan_dump_$(date +%Y%m%d).sql would be pushed to elco-crdb-to-postgres bucket"
+                sleep 600;
+            env:
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.db }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.user }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgres.secret }}
+                  key: password
+            - name: S3_BUCKET
+              value: {{ .Values.pgdumpBucket.name }}
+            ports:
+            - containerPort: {{ .Values.postgres.port }}
+            resources:
+              requests:
+                cpu: 300m
+                memory: 300Mi
+              limits:
+                cpu: 1000m
+                memory: 2000Mi
+            volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: cockroach-backup
+              mountPath: /scripts
+            - name: pg-dump
+              mountPath: /pg_dump
+          - name: pg-dump-to-s3
+            image: amazon/aws-cli
+            command:
+            - /bin/sh
+            - -c
+            - |
+              sleep 240
+              echo "Copying vulcan_dump_$(date +%Y%m%d).sql to elco-crdb-to-postgres-prod bucket (approx [4 minutes])"
+              aws s3 cp /pg_dump/vulcan_dump_$(date +%Y%m%d).sql s3://elco-crdb-to-postgres-prod/pg-dumps/vulcan_dump_$(date +%Y%m%d).sql
+            volumeMounts:
+            - name: pg-dump
+              mountPath: /pg_dump
+          restartPolicy: OnFailure  # This is now at the correct level
+          volumes:
+          - name: postgres-data
+            emptyDir: {}
+          - name: cockroach-backup
+            emptyDir: {}
+          - name: pg-dump
+            emptyDir: {}
+          serviceAccountName: {{ include "crdb-to-postgres.serviceAccountName" . }}
