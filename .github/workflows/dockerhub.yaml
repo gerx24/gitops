@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.platform == 'amd64' && 'k8s-mte-amd64' || 'k8s-mte-arm64' }}
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read

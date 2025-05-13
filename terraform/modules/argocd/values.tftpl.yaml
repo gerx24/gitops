@@ -1,0 +1,6 @@
+global:
+  logging:
+    format: json
+    level: info
+dex:
+  enabled: false
