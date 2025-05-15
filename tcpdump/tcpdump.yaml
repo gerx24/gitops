@@ -1,0 +1,8 @@
+spec:
+  template:
+    spec:
+      containers:
+      - name: tcpdumper
+        image: docker.io/dockersec/tcpdump
+
+#kubectl patch deployment  vulcan-core-usva-int-arm -n vulcan --patch "$(cat tcpdump.yaml)"
