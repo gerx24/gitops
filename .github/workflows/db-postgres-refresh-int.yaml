@@ -5,12 +5,12 @@ on:
   workflow_dispatch:
     inputs:
       database:
-        description: "gerx_db_dev_x"
+        description: "vulcan-int-x"
         required: true
         type: string
       environment:
         description: "environment"
-        default: dev
+        default: int
         type: string
       date:
         description: "Backup date format e.g 20250512 year/month/day"
