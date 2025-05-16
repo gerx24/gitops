@@ -68,14 +68,9 @@ resource "aws_iam_policy" "replication_policy" {
       {
         Effect = "Allow",
         Action = [
-          "s3:GetObject",
-          "s3:GetObjectVersion",
+          "s3:GetObjectVersionForReplication",
           "s3:GetObjectVersionAcl",
-          "s3:GetObjectVersionTagging",
-          "s3:GetObjectRetention",
-          "s3:GetObjectLegalHold",
-          "s3:GetObjectAttributes",
-          "s3:GetObjectVersionForReplication"
+          "s3:GetObjectVersionTagging"
         ],
         Resource = [
           "${local.source_replication_bucket_arn}/*",
@@ -88,13 +83,11 @@ resource "aws_iam_policy" "replication_policy" {
           "s3:ReplicateObject",
           "s3:ReplicateDelete",
           "s3:ReplicateTags",
-          "s3:PutObject",
-          "s3:PutObjectAcl",
-          "s3:PutObjectTagging"
+          "s3:ObjectOwnerOverrideToBucketOwner"
         ],
         Resource = [
-          local.destination_bucket_arn,
           "${local.destination_bucket_arn}/*"
+          "${local.destination_bucket_arn}"
         ]
       }
     ]
@@ -135,6 +128,8 @@ resource "aws_s3_bucket_replication_configuration" "replication_bucket_config" {
       access_control_translation {
         owner = "Destination"
       }
+      account = "222222222"
+
       metrics {
         status = "Enabled"
 
