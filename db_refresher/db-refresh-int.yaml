@@ -46,5 +46,5 @@ jobs:
         database: ${{ fromJson(needs.get-dbs.outputs.db_matrix) }}
     uses: ./.github/workflows/job.yaml
     with:
-      database: ${{ needs.get-dbs.outputs.db_list}}
+      database: ${{ matrix.database }}
       environment: int
