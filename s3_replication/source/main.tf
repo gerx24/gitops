@@ -86,7 +86,7 @@ resource "aws_iam_policy" "replication_policy" {
           "s3:ObjectOwnerOverrideToBucketOwner"
         ],
         Resource = [
-          "${local.destination_bucket_arn}/*"
+          "${local.destination_bucket_arn}/*",
           "${local.destination_bucket_arn}"
         ]
       }
