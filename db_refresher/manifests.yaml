@@ -84,3 +84,26 @@ roleRef:
   kind: Role
   name: vulcan-db-refresh-role
   apiGroup: rbac.authorization.k8s.io
+
+
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: vulca-db-refresh-int
+  namespace: vulcan-db-refresh
+  annotations:
+    argocd.argoproj.io/sync-wave: "-12"
+spec:
+  dataFrom:
+  - extract:
+      key: eks-int-usva-pincer-project/vulca-db-refresh-int
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: aws-secrets-manager
+  target:
+    name: vulcan-db-refresh-int
+    template:
+      engineVersion: v2
+      type: Opaque

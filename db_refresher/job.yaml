@@ -2,20 +2,6 @@ name: db refresh int [vulcan_core]
 
 
 on:
-  workflow_dispatch:
-    inputs:
-      database:
-        description: "vulcan_int_x"
-        required: true
-        type: string
-      environment:
-        description: "environment"
-        default: int
-        type: string
-      date:
-        description: "Backup date format e.g 20250512 yyyymmdd"
-        required: true
-        type: string
 
   workflow_call:
     inputs:
@@ -27,10 +13,6 @@ on:
         description: "environment"
         default: int
         type: string
-      date:
-        description: "Backup date format e.g 20250512 year/month/day"
-        required: true
-        type: string
 
 jobs:
   db-refresh-int:
@@ -38,7 +20,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
-
+    env:
+      JOB_NAME: ${{ inputs.database }}
     steps:
       - name: 🔑 Get AWS Creds
         id: aws-creds
@@ -51,28 +34,33 @@ jobs:
         run: |
           aws eks update-kubeconfig --name ${{ inputs.environment }}-usva-pincer-project --region us-east-1
 
+      - name: 🧹 supported eks job name
+        id: job-db-name
+        run: |
+          JOB_NAME_EKS=$(echo "${JOB_NAME}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
+          echo "JOB_NAME_EKS=$JOB_NAME_EKS" >> $GITHUB_ENV
+
       - name: Deploy Job
         run: |
           export DB_NAME=${{ inputs.database }}
           export ENV=${{ inputs.environment }}
-          export DATE=${{ inputs.date }}
-          export PGPASSWORD=${{ secrets.PGPASSWORD }}
+          export DATE=$(date +%Y%m%d)
 
           cat <<EOF | envsubst | kubectl apply -f -
           apiVersion: batch/v1
           kind: Job
           metadata:
-            name: db-refresh-job-$DB_NAME
+            name: db-refresh-job-$JOB_NAME_EKS
             namespace: vulcan-db-refresh
             labels:
-              app: db-refresh-job
+              app: db-refresh-job-$JOB_NAME_EKS
           spec:
             ttlSecondsAfterFinished: 300
             template:
               metadata:
-                name: db-refresh-job
+                name: db-refresh-job-$JOB_NAME_EKS
                 labels:
-                  app: db-refresh-job
+                  app: db-refresh-job-$JOB_NAME_EKS
               spec:
                 initContainers:
                 - name: copying-pgdump
@@ -82,7 +70,7 @@ jobs:
                     - -c
                     - |
                       echo "Copying files from elco-int-usva-vulcan-core-pg-backups"
-                      aws s3 cp s3://elco-int-usva-vulcan-core-pg-backups/ /pg-dump --recursive
+                      aws s3 cp s3://elco-int-usva-vulcan-core-pg-backups/core/ /pg-dump --recursive
                   volumeMounts:
                     - name: pg-dump
                       mountPath: /pg-dump
@@ -91,7 +79,10 @@ jobs:
                   image: ghcr.io/elc-online/t-shoot/runner:1.0.0
                   env:
                     - name: PGPASSWORD
-                      value: "$PGPASSWORD"
+                      valueFrom:
+                        secretKeyRef:
+                          name: vulcan-db-refresh-int
+                          key: PGPASSWORD
                     - name: DB_NAME
                       value: "$DB_NAME"
                     - name: ENV
@@ -102,24 +93,26 @@ jobs:
                   args:
                     - |
                       echo "Dropping old database..."
-                      PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "ALTER DATABASE $DB_NAME OWNER TO root;"
+                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "ALTER DATABASE $DB_NAME OWNER TO root;"
 
-                      PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c " SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_NAME AND pid <> pg_backend_pid(); DROP DATABASE $DB_NAME;"
+                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_NAME' AND pid <> pg_backend_pid();"
+
+                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "DROP DATABASE $DB_NAME;"
 
                       echo "Creating new database..."
-                      PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "CREATE DATABASE $DB_NAME;"
+                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "CREATE DATABASE $DB_NAME;"
 
                       echo "Changing ownership..."
-                      PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "ALTER DATABASE $DB_NAME OWNER TO vulcan_owner_green;"
+                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "ALTER DATABASE $DB_NAME OWNER TO vulcan_owner_green;"
 
                       echo "Restoring database..."
-                      PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d $DB_NAME -f /pg-dump/vulcan_dump_$DATE.sql
+                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d $DB_NAME -f /pg-dump/vulcan_core_dump_$DATE.sql
 
                       echo "Altering schema ownership..."
-                      PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d $DB_NAME -c "ALTER SCHEMA public OWNER TO vulcan_owner_role; ALTER SCHEMA client_side OWNER TO vulcan_owner_role; ALTER SCHEMA settings OWNER TO vulcan_owner_role;"
+                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d $DB_NAME -c "ALTER SCHEMA public OWNER TO vulcan_owner_role; ALTER SCHEMA client_side OWNER TO vulcan_owner_role; ALTER SCHEMA settings OWNER TO vulcan_owner_role;"
 
                       echo "Running script"
-                      PGPASSWORD=$PGPASSWORD psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d $DB_NAME -f /pg-dump/privileges.sql
+                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d $DB_NAME -f /pg-dump/privileges.sql
                   volumeMounts:
                     - name: pg-dump
                       mountPath: /pg-dump
@@ -138,21 +131,21 @@ jobs:
 
       - name: Wait for Job to Succeed [5 minutes check]
         run: |
-          echo "Checking status of job db-refresh-job-${{ inputs.database }}"
+          echo "Checking status of job db-refresh-job-$JOB_NAME_EKS"
           for i in {1..30}; do
-            STATUS=$(kubectl get job db-refresh-job-${{ inputs.database }} -n vulcan-db-refresh -o jsonpath="{.status.conditions[?(@.type=='Complete')].status}")
+            STATUS=$(kubectl get job db-refresh-job-$JOB_NAME_EKS -n vulcan-db-refresh -o jsonpath="{.status.conditions[?(@.type=='Complete')].status}")
             if [[ "$STATUS" == "True" ]]; then
-              echo "✅ Job db-refresh-job-${{ inputs.database }} completed successfully."
+              echo "✅ Job db-refresh-job-$JOB_NAME_EKS completed successfully."
               exit 0
             fi
 
-            FAILED=$(kubectl get job db-refresh-job-${{ inputs.database }} -n vulcan-db-refresh -o jsonpath="{.status.failed}")
+            FAILED=$(kubectl get job db-refresh-job-$JOB_NAME_EKS -n vulcan-db-refresh -o jsonpath="{.status.failed}")
             if [[ "$FAILED" -ge 1 ]]; then
-              echo "❌ Job db-refresh-job-${{ inputs.database }} failed."
+              echo "❌ Job db-refresh-job-$JOB_NAME_EKS failed."
               exit 1
             fi
 
-            echo "⏳ Job db-refresh-job-${{ inputs.database }} not complete yet... waiting 10 seconds"
+            echo "⏳ Job db-refresh-job-$JOB_NAME_EKS not complete yet... waiting 10 seconds"
             sleep 10
           done
 
@@ -162,5 +155,5 @@ jobs:
 
       - name: Delete Job
         run: |
-          kubectl delete job db-refresh-job-${{ inputs.database }} -n vulcan-db-refresh
-          echo "Job db-refresh-job-${{ inputs.database }} completed"
+          kubectl delete job db-refresh-job-$JOB_NAME_EKS -n vulcan-db-refresh
+          echo "Job db-refresh-job-$JOB_NAME_EKS completed"

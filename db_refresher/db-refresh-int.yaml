@@ -20,7 +20,7 @@ jobs:
   get-dbs:
     runs-on: k8s-mte-amd64
     outputs:
-      db_list: ${{ steps.get-db-list.outputs.db_list }}
+      db_matrix: ${{ steps.get-db-list.outputs.db_matrix }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -37,16 +37,6 @@ jobs:
         db_array_json=$(printf '%s\n' "$changed_filenames" | jq -R . | jq -s -c .)
         echo "db_matrix=$db_array_json" >> "$GITHUB_OUTPUT"
 
-  date:
-    name: Generate Current Date
-    runs-on: ubuntu-latest
-    outputs:
-      today: ${{ steps.set-date.outputs.today }}
-    steps:
-      - name: Set Date
-        id: set-date
-        run: echo "today=$(date +%Y%m%d)" >> $GITHUB_OUTPUT
-
   run-db-imports:
     name: Run INT DB Refresh
     needs: get-dbs
@@ -58,4 +48,3 @@ jobs:
     with:
       database: ${{ needs.get-dbs.outputs.db_list}}
       environment: int
-      date: ${{ needs.date.outputs.today }}
