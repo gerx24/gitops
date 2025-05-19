@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       database:
-        description: "vulcan-int-x"
+        description: "vulcan_int_x"
         required: true
         type: string
       environment:
@@ -20,7 +20,7 @@ on:
   workflow_call:
     inputs:
       database:
-        description: "vulcan-int-x"
+        description: "vulcan_int_x"
         required: true
         type: string
       environment:

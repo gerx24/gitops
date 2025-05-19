@@ -1,0 +1,61 @@
+name: Refresh INT database(s) with prod data
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .db_refresh_int/*
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-db
+  cancel-in-progress: true
+
+jobs:
+  get-dbs:
+    runs-on: k8s-mte-amd64
+    outputs:
+      db_list: ${{ steps.get-db-list.outputs.db_list }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Get changed files
+      id: changed-files
+      uses: elc-online/tj-actions-changed-files@v42
+
+    - id: get-db-list
+      env:
+        ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+      run: |
+        changed_filenames=$(echo "$ALL_CHANGED_FILES" | tr ' ' '\n' | grep ".db_refresh_int/" | xargs -I {} basename {} | sed 's/\.[^.]*$//')
+        db_array_json=$(printf '%s\n' "$changed_filenames" | jq -R . | jq -s -c .)
+        echo "db_matrix=$db_array_json" >> "$GITHUB_OUTPUT"
+
+  date:
+    name: Generate Current Date
+    runs-on: ubuntu-latest
+    outputs:
+      today: ${{ steps.set-date.outputs.today }}
+    steps:
+      - name: Set Date
+        id: set-date
+        run: echo "today=$(date +%Y%m%d)" >> $GITHUB_OUTPUT
+
+  run-db-imports:
+    name: Run INT DB Refresh
+    needs: get-dbs
+    if: ${{ needs.get-dbs.outputs.db_matrix != '[]' }}
+    strategy:
+      matrix:
+        database: ${{ fromJson(needs.get-dbs.outputs.db_matrix) }}
+    uses: ./.github/workflows/job.yaml
+    with:
+      database: ${{ needs.get-dbs.outputs.db_list}}
+      environment: int
+      date: ${{ needs.date.outputs.today }}
