@@ -1,6 +1,5 @@
 module "source_replication_bucket" {
   source = "../module/bucket"
-
   environment        = "dev"
   bucket_name        = "gerx24-source-bucket"
   lifecycle_rules = [
@@ -15,8 +14,8 @@ module "source_replication_bucket" {
 }
 
 locals {
-  source_replication_bucket_arn  = "arn:aws:s3:::gerx24-source-bucket"
-  bucket_name                    = "gerx24-source-bucket"
+  source_replication_bucket_arn  = module.source_replication_bucket.s3_bucket_id
+  bucket_name                    = module.source_replication_bucket.s3_bucket_arn
   destination_bucket_arn         = "arn:aws:s3:::gerx24-destination-bucket"
   source_replication_policy_name = "source-replication-policy"
   source_replication_role_name   = "source-replication-role"
@@ -128,7 +127,7 @@ resource "aws_s3_bucket_replication_configuration" "replication_bucket_config" {
       access_control_translation {
         owner = "Destination"
       }
-      account = "222222222"
+      account = "222222222222"
 
       metrics {
         status = "Enabled"
