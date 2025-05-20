@@ -1,4 +1,4 @@
-name: db refresh int [vulcan_core]
+name: db refresh int [gerx24_core]
 
 
 on:
@@ -6,7 +6,7 @@ on:
   workflow_call:
     inputs:
       database:
-        description: "vulcan_int_x"
+        description: "gerx24_int_x"
         required: true
         type: string
       environment:
@@ -32,7 +32,7 @@ jobs:
 
       - name: Update kubeconfig for EKS
         run: |
-          aws eks update-kubeconfig --name ${{ inputs.environment }}-usva-pincer-project --region us-east-1
+          aws eks update-kubeconfig --name ${{ inputs.environment }}-usva-gerx24-project --region us-east-1
 
       - name: 🧹 supported eks job name
         id: job-db-name
@@ -51,7 +51,7 @@ jobs:
           kind: Job
           metadata:
             name: db-refresh-job-$JOB_NAME_EKS
-            namespace: vulcan-db-refresh
+            namespace: gerx24-db-refresh
             labels:
               app: db-refresh-job-$JOB_NAME_EKS
           spec:
@@ -69,8 +69,8 @@ jobs:
                     - /bin/sh
                     - -c
                     - |
-                      echo "Copying files from elco-int-usva-vulcan-core-pg-backups"
-                      aws s3 cp s3://elco-int-usva-vulcan-core-pg-backups/core/ /pg-dump --recursive
+                      echo "Copying files from elco-int-usva-gerx24-core-pg-backups"
+                      aws s3 cp s3://elco-int-usva-gerx24-core-pg-backups/core/ /pg-dump --recursive
                   volumeMounts:
                     - name: pg-dump
                       mountPath: /pg-dump
@@ -81,7 +81,7 @@ jobs:
                     - name: PGPASSWORD
                       valueFrom:
                         secretKeyRef:
-                          name: vulcan-db-refresh-int
+                          name: gerx24-db-refresh-int
                           key: PGPASSWORD
                     - name: DB_NAME
                       value: "$DB_NAME"
@@ -93,26 +93,26 @@ jobs:
                   args:
                     - |
                       echo "Dropping old database..."
-                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "ALTER DATABASE $DB_NAME OWNER TO root;"
+                      psql -h rds-global.gerx24.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "ALTER DATABASE $DB_NAME OWNER TO root;"
 
-                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_NAME' AND pid <> pg_backend_pid();"
+                      psql -h rds-global.gerx24.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_NAME' AND pid <> pg_backend_pid();"
 
-                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "DROP DATABASE $DB_NAME;"
+                      psql -h rds-global.gerx24.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "DROP DATABASE $DB_NAME;"
 
                       echo "Creating new database..."
-                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "CREATE DATABASE $DB_NAME;"
+                      psql -h rds-global.gerx24.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "CREATE DATABASE $DB_NAME;"
 
                       echo "Changing ownership..."
-                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "ALTER DATABASE $DB_NAME OWNER TO vulcan_owner_green;"
+                      psql -h rds-global.gerx24.usva.$ENV.pincer-project.internal -p 5432 -U root -d postgres -c "ALTER DATABASE $DB_NAME OWNER TO gerx24_owner_green;"
 
                       echo "Restoring database..."
-                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d $DB_NAME -f /pg-dump/vulcan_core_dump_$DATE.sql
+                      psql -h rds-global.gerx24.usva.$ENV.pincer-project.internal -p 5432 -U root -d $DB_NAME -f /pg-dump/gerx24_core_dump_$DATE.sql
 
                       echo "Altering schema ownership..."
-                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d $DB_NAME -c "ALTER SCHEMA public OWNER TO vulcan_owner_role; ALTER SCHEMA client_side OWNER TO vulcan_owner_role; ALTER SCHEMA settings OWNER TO vulcan_owner_role;"
+                      psql -h rds-global.gerx24.usva.$ENV.pincer-project.internal -p 5432 -U root -d $DB_NAME -c "ALTER SCHEMA public OWNER TO gerx24_owner_role; ALTER SCHEMA client_side OWNER TO gerx24_owner_role; ALTER SCHEMA settings OWNER TO gerx24_owner_role;"
 
                       echo "Running script"
-                      psql -h rds-global.vulcan.usva.$ENV.pincer-project.internal -p 5432 -U root -d $DB_NAME -f /pg-dump/privileges.sql
+                      psql -h rds-global.gerx24.usva.$ENV.pincer-project.internal -p 5432 -U root -d $DB_NAME -f /pg-dump/privileges.sql
                   volumeMounts:
                     - name: pg-dump
                       mountPath: /pg-dump
@@ -126,20 +126,20 @@ jobs:
                   - effect: NoSchedule
                     key: karpenter-node
                     value: "true"
-                serviceAccountName: vulcan-db-refresh
+                serviceAccountName: gerx24-db-refresh
           EOF
 
       - name: Wait for Job to Succeed [5 minutes check]
         run: |
           echo "Checking status of job db-refresh-job-$JOB_NAME_EKS"
           for i in {1..30}; do
-            STATUS=$(kubectl get job db-refresh-job-$JOB_NAME_EKS -n vulcan-db-refresh -o jsonpath="{.status.conditions[?(@.type=='Complete')].status}")
+            STATUS=$(kubectl get job db-refresh-job-$JOB_NAME_EKS -n gerx24-db-refresh -o jsonpath="{.status.conditions[?(@.type=='Complete')].status}")
             if [[ "$STATUS" == "True" ]]; then
               echo "✅ Job db-refresh-job-$JOB_NAME_EKS completed successfully."
               exit 0
             fi
 
-            FAILED=$(kubectl get job db-refresh-job-$JOB_NAME_EKS -n vulcan-db-refresh -o jsonpath="{.status.failed}")
+            FAILED=$(kubectl get job db-refresh-job-$JOB_NAME_EKS -n gerx24-db-refresh -o jsonpath="{.status.failed}")
             if [[ "$FAILED" -ge 1 ]]; then
               echo "❌ Job db-refresh-job-$JOB_NAME_EKS failed."
               exit 1
@@ -155,5 +155,5 @@ jobs:
 
       - name: Delete Job
         run: |
-          kubectl delete job db-refresh-job-$JOB_NAME_EKS -n vulcan-db-refresh
+          kubectl delete job db-refresh-job-$JOB_NAME_EKS -n gerx24-db-refresh
           echo "Job db-refresh-job-$JOB_NAME_EKS completed"
