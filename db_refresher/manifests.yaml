@@ -16,7 +16,7 @@ Trust:
 #                 "StringLike": {
 #                     "token.actions.githubusercontent.com:sub": [
 #                         "repo:elc-online/germoral-sandbox:ref:refs/heads/main",
-#                         "repo:elc-online/vulcan:ref:refs/heads/main"
+#                         "repo:elc-online/gerx24:ref:refs/heads/main"
 #                     ]
 #                 }
 #             }
@@ -51,8 +51,8 @@ Policy: postgres-db-int-refresh-policy
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: vulcan-db-refresh
-  namespace: vulcan-db-refresh
+  name: gerx24-db-refresh
+  namespace: gerx24-db-refresh
   annotations:
     eks.amazonaws.com/role-arn: arn:aws:iam::183903597125:role/postgres-db-int-refresh-IRSA
 
@@ -60,8 +60,8 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: vulcan-db-refresh
-  name: vulcan-db-refresh-role
+  namespace: gerx24-db-refresh
+  name: gerx24-db-refresh-role
 rules:
   - apiGroups: [""]
     resources: ["pods", "services"]
@@ -74,15 +74,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: vulcan-db-refresh-rolebinding
-  namespace: vulcan-db-refresh
+  name: gerx24-db-refresh-rolebinding
+  namespace: gerx24-db-refresh
 subjects:
   - kind: User
-    name: github:ci-vulcan
+    name: github:ci-gerx24
     apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: Role
-  name: vulcan-db-refresh-role
+  name: gerx24-db-refresh-role
   apiGroup: rbac.authorization.k8s.io
 
 
@@ -91,7 +91,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: vulca-db-refresh-int
-  namespace: vulcan-db-refresh
+  namespace: gerx24-db-refresh
   annotations:
     argocd.argoproj.io/sync-wave: "-12"
 spec:
@@ -103,7 +103,7 @@ spec:
     kind: ClusterSecretStore
     name: aws-secrets-manager
   target:
-    name: vulcan-db-refresh-int
+    name: gerx24-db-refresh-int
     template:
       engineVersion: v2
       type: Opaque
