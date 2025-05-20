@@ -1,6 +1,7 @@
 module "destination_replication_bucket" {
   source = "../module/bucket"
 
+  bucket_name = "gerx24-destination-bucket"
   environment = "dev"
   lifecycle_rules = [
     {

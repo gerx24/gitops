@@ -1,6 +1,6 @@
 module "s3_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "3.14.1"
+  version = "4.9.0"
   bucket  = var.bucket_name
 
   control_object_ownership = true
