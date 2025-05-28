@@ -5,4 +5,4 @@ spec:
       - name: tcpdumper
         image: docker.io/dockersec/tcpdump
 
-#kubectl patch deployment  vulcan-core-usva-int-arm -n vulcan --patch "$(cat tcpdump.yaml)"
+#kubectl patch deployment  gerx24-core-usva-int-arm -n gerx24 --patch "$(cat tcpdump.yaml)"

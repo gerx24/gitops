@@ -27,6 +27,6 @@ serviceAccount:
   name: "crdb-to-postgres-migration"
 
 secret:
-  name: vulcan-postgres-creds
+  name: gerx24-postgres-creds
   secretkey: eks-int-usva-pincer-project/crdb-to-postgres-creds
   secretname: crdb-to-postgres-creds

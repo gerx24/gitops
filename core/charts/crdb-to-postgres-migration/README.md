@@ -1,6 +1,6 @@
 # CRDB Cluster Management
 
-This repository contains a scheduled workflow for managing backups of the `vulcan_core_prod` database and performing PostgreSQL dumps. The process ensures that backups are handled efficiently and stored appropriately.
+This repository contains a scheduled workflow for managing backups of the `gerx24_core_prod` database and performing PostgreSQL dumps. The process ensures that backups are handled efficiently and stored appropriately.
 
 ## Workflow Overview
 
@@ -10,7 +10,7 @@ A GitHub Actions workflow is scheduled to run **every day at 00:00 UTC**. This w
 
 #### Workflow Steps:
 1. **Backup Creation**:
-   - The workflow creates a backup of the `vulcan_core_prod` database.
+   - The workflow creates a backup of the `gerx24_core_prod` database.
 2. **Storage**:
    - The backup is pushed to the bucket:
      ```

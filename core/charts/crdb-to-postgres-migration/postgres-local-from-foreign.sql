@@ -183,18 +183,18 @@ CREATE TABLE public.local_content_partials (
     mapped_data jsonb,
     tenant_id uuid,
     locale character varying(255) DEFAULT 'en_US'::character varying,
-    vulcan_component character varying(255),
+    gerx24_component character varying(255),
     cms_component character varying(255),
     content jsonb
 );
 
 INSERT INTO public.local_content_partials (
     id, inserted_at, updated_at, cms_source, cms_source_id, component,
-    mapped_data, tenant_id, locale, vulcan_component, cms_component, content
+    mapped_data, tenant_id, locale, gerx24_component, cms_component, content
 )
 SELECT
     id, inserted_at, updated_at, cms_source, cms_source_id, component,
-    mapped_data, tenant_id, locale, vulcan_component, cms_component, content
+    mapped_data, tenant_id, locale, gerx24_component, cms_component, content
 FROM public.content_partials;
 
 DROP FOREIGN TABLE IF EXISTS public.content_partials;
@@ -426,13 +426,13 @@ CREATE TABLE public.local_page_sections (
     product_source_value text,
     type character varying(255),
     "order" integer,
-    vulcan_component character varying(255),
+    gerx24_component character varying(255),
     cms_component character varying(255),
     content jsonb
 );
 
-INSERT INTO public.local_page_sections (id, inserted_at, updated_at, cms_data, cms_section_id, component, mapped_data, page_id, product_source_type, product_source_value, type, "order", vulcan_component, cms_component, content)
-SELECT id, inserted_at, updated_at, cms_data, cms_section_id, component, mapped_data, page_id, product_source_type, product_source_value, type, "order", vulcan_component, cms_component, content
+INSERT INTO public.local_page_sections (id, inserted_at, updated_at, cms_data, cms_section_id, component, mapped_data, page_id, product_source_type, product_source_value, type, "order", gerx24_component, cms_component, content)
+SELECT id, inserted_at, updated_at, cms_data, cms_section_id, component, mapped_data, page_id, product_source_type, product_source_value, type, "order", gerx24_component, cms_component, content
 FROM public.page_sections;
 
 DROP FOREIGN TABLE IF EXISTS public.page_sections;

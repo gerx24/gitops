@@ -36,7 +36,7 @@ spec:
                   sleep 1;
                 done &&
                 echo "CockroachDB is up and running!" &&
-                cockroach sql --insecure --execute "RESTORE DATABASE vulcan_core_10222024_prod FROM LATEST IN 'nodelocal://1/backup' WITH skip_localities_check;" &&
+                cockroach sql --insecure --execute "RESTORE DATABASE gerx24_core_10222024_prod FROM LATEST IN 'nodelocal://1/backup' WITH skip_localities_check;" &&
                 echo "Restore operation completed."
                 sleep 600;
             volumeMounts:
@@ -63,27 +63,27 @@ spec:
                   sleep 60;
                 done &&
                 echo "PostgreSQL is up and running!" &&
-                psql -U root -c "CREATE DATABASE vulcan;" &&
-                psql -U root -d vulcan -c "SET search_path TO public;" &&
-                psql -U root -d vulcan -c "CREATE EXTENSION IF NOT EXISTS postgres_fdw;" &&
-                psql -U root -d vulcan -c "CREATE SERVER crdb FOREIGN DATA WRAPPER postgres_fdw OPTIONS (host 'localhost', port '26257', dbname 'vulcan_core_10222024_prod', sslmode 'disable');" &&
-                psql -U root -d vulcan -c "CREATE USER MAPPING FOR root SERVER crdb OPTIONS (user 'root', password '');" &&
-                psql -U root -d vulcan -c "CREATE SCHEMA client_side;" &&
-                psql -U root -d vulcan -c "CREATE SCHEMA settings;" &&
-                psql -U root -d vulcan -c "IMPORT FOREIGN SCHEMA public FROM SERVER crdb INTO public;" &&
-                psql -U root -d vulcan -c "IMPORT FOREIGN SCHEMA client_side FROM SERVER crdb INTO client_side;" &&
-                psql -U root -d vulcan -c "IMPORT FOREIGN SCHEMA settings FROM SERVER crdb INTO settings;" &&
-                psql -U root -d vulcan -f /scripts/postgres-foreign.sql &&
+                psql -U root -c "CREATE DATABASE gerx24;" &&
+                psql -U root -d gerx24 -c "SET search_path TO public;" &&
+                psql -U root -d gerx24 -c "CREATE EXTENSION IF NOT EXISTS postgres_fdw;" &&
+                psql -U root -d gerx24 -c "CREATE SERVER crdb FOREIGN DATA WRAPPER postgres_fdw OPTIONS (host 'localhost', port '26257', dbname 'gerx24_core_10222024_prod', sslmode 'disable');" &&
+                psql -U root -d gerx24 -c "CREATE USER MAPPING FOR root SERVER crdb OPTIONS (user 'root', password '');" &&
+                psql -U root -d gerx24 -c "CREATE SCHEMA client_side;" &&
+                psql -U root -d gerx24 -c "CREATE SCHEMA settings;" &&
+                psql -U root -d gerx24 -c "IMPORT FOREIGN SCHEMA public FROM SERVER crdb INTO public;" &&
+                psql -U root -d gerx24 -c "IMPORT FOREIGN SCHEMA client_side FROM SERVER crdb INTO client_side;" &&
+                psql -U root -d gerx24 -c "IMPORT FOREIGN SCHEMA settings FROM SERVER crdb INTO settings;" &&
+                psql -U root -d gerx24 -f /scripts/postgres-foreign.sql &&
                 echo "Creating foreign_tables..." &&
                 sleep 5 &&
-                psql -U root -d vulcan -f /scripts/postgres-local-from-foreign.sql &&
+                psql -U root -d gerx24 -f /scripts/postgres-local-from-foreign.sql &&
                 echo "Creating local_tables, dropping foreigh table and renaming tables" &&
                 sleep 5 &&
                 echo "All commands executed" &&
                 sleep 10 &&
-                echo "Vulcan Database dump created at /pg_dump/vulcan_dump_$(date +%Y%m%d).sql" &&
-                pg_dump -U root -d vulcan -f /pg_dump/vulcan_dump_$(date +%Y%m%d).sql &&
-                echo "vulcan_dump_$(date +%Y%m%d).sql would be pushed to elco-crdb-to-postgres bucket"
+                echo "gerx24 Database dump created at /pg_dump/gerx24_dump_$(date +%Y%m%d).sql" &&
+                pg_dump -U root -d gerx24 -f /pg_dump/gerx24_dump_$(date +%Y%m%d).sql &&
+                echo "gerx24_dump_$(date +%Y%m%d).sql would be pushed to elco-crdb-to-postgres bucket"
                 sleep 600;
             env:
             - name: POSTGRES_DB
@@ -120,8 +120,8 @@ spec:
             - -c
             - |
               sleep 240
-              echo "Copying vulcan_dump_$(date +%Y%m%d).sql to elco-crdb-to-postgres-prod bucket (approx [4 minutes])"
-              aws s3 cp /pg_dump/vulcan_dump_$(date +%Y%m%d).sql s3://elco-crdb-to-postgres-prod/pg-dumps/vulcan_dump_$(date +%Y%m%d).sql
+              echo "Copying gerx24_dump_$(date +%Y%m%d).sql to elco-crdb-to-postgres-prod bucket (approx [4 minutes])"
+              aws s3 cp /pg_dump/gerx24_dump_$(date +%Y%m%d).sql s3://elco-crdb-to-postgres-prod/pg-dumps/gerx24_dump_$(date +%Y%m%d).sql
             volumeMounts:
             - name: pg-dump
               mountPath: /pg_dump

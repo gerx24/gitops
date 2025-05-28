@@ -155,7 +155,7 @@ CREATE FOREIGN TABLE public.content_partials (
     mapped_data jsonb,
     tenant_id uuid,
     locale character varying(255) DEFAULT 'en_US'::character varying,
-    vulcan_component character varying(255),
+    gerx24_component character varying(255),
     cms_component character varying(255),
     content jsonb
 ) SERVER crdb OPTIONS (
@@ -348,7 +348,7 @@ CREATE FOREIGN TABLE public.page_sections (
     product_source_value text,
     type character varying(255),
     "order" integer,
-    vulcan_component character varying(255),
+    gerx24_component character varying(255),
     cms_component character varying(255),
     content jsonb
 ) SERVER crdb OPTIONS (
