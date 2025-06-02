@@ -7,11 +7,10 @@ docker run -d \
   --cap-add=NET_ADMIN \
   --net dns-net \
   --ip 192.168.100.53 \
-  -p 1053:1053/udp \
-  -p 1053:1053/tcp \
+  -p 53:53/udp \
+  -p 53:53/tcp \
   -v /Users/gerson/gitops/dns-server/dnsmasq.conf:/etc/dnsmasq.conf \
-  dns-lab \
-  dnsmasq -k --port=1053
+  dns-lab
 
 
 
