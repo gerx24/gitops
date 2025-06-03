@@ -53,6 +53,19 @@
 </body>
 </html>
 
+<!-- gerson@core:/var/www/site.gersonplace.com/pictures$ cat convert_optimize.sh
+#!/bin/bash
+for img in *.JPG *.jpg *.HEIC *.heic; do
+  [ -f "$img" ] || continue
+  name="${img%.*}"
+  convert "$img" -resize 1920x1080^ -gravity center -extent 1920x1080 -quality 75 "${name}-optimized.jpg"
+  if [ $? -eq 0 ]; then
+    rm "$img"
+  else
+    echo "Error al convertir $img"
+  fi
+done -->
+
 
 <!-- gerson@core:/var/www/site.gersonplace.com$ cat index.html
 <!DOCTYPE html>
