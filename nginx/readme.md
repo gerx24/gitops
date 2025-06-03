@@ -15,6 +15,7 @@ Permissions:
 sudo chown www-data:www-data /var/www/html/parapent_mobile.mp4
 sudo chmod 755 /var/www/html
 sudo systemctl reload nginx
+sudo nginx -t
 
 
 
