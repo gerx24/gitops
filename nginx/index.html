@@ -52,3 +52,158 @@
   </div>
 </body>
 </html>
+
+
+<!-- gerson@core:/var/www/site.gersonplace.com$ cat index.html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Parapente Libre</title>
+  <style>
+    body, html {
+      margin: 0; padding: 0; height: 100%; background: black;
+      font-family: Arial, sans-serif;
+    }
+    video {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      object-fit: cover;
+      z-index: 0;
+    }
+    .overlay {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      background-color: rgba(0,0,0,0.5);
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 90%;
+      z-index: 10;
+    }
+    h1 { font-size: 3em; margin-bottom: 0.5em; font-weight: bold; }
+    p { font-size: 1.5em; font-weight: bold; }
+
+    /* Galería */
+    #gallery {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      max-width: 95vw;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      border-radius: 12px;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      max-height: 120px;
+    }
+    #gallery img {
+      height: 100px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    #gallery img:hover {
+      transform: scale(1.1);
+    }
+
+    /* Modal para imagen grande */
+    #modal {
+      display: none; /* oculto por defecto */
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      cursor: pointer;
+    }
+    #modal img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 12px;
+      box-shadow: 0 0 20px black;
+      cursor: default;
+    }
+  </style>
+</head>
+<body>
+
+  <video autoplay muted loop playsinline preload="auto" id="bg-video">
+    <source src="parapent_vp9.webm" type="video/webm" />
+    <source src="parapent_mobile.mp4" type="video/mp4" media="(max-width: 600px)" />
+    <source src="parapent_compressed.mp4" type="video/mp4" media="(min-width: 601px)" />
+    Tu navegador no soporta video HTML5.
+  </video>
+
+  <div class="overlay">
+    <h1>¡Gersonplace.com!</h1>
+    <p>Donde el Parapente es una pasión</p>
+  </div>
+
+  <div id="gallery"></div>
+
+  <div id="modal">
+    <img id="modal-img" alt="Imagen grande" />
+  </div>
+
+  <script>
+    const gallery = document.getElementById('gallery');
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modal-img');
+
+    // Lista estática de imágenes optimizadas en carpeta 'pictures' (debes crearla y subirlas ahí)
+    const images = [
+      "pictures/foto1-optimized.jpg",
+      "pictures/foto2-optimized.jpg",
+      "pictures/foto3-optimized.jpg",
+      "pictures/foto4-optimized.jpg",
+      "pictures/foto5-optimized.jpg",
+      "pictures/foto6-optimized.jpg",
+      "pictures/foto7-optimized.jpg",
+      "pictures/foto8-optimized.jpg",
+      "pictures/foto9-optimized.jpg",
+      "pictures/foto10-optimized.jpg",
+      "pictures/foto11-optimized.jpg",
+      "pictures/foto12-optimized.jpg",
+      "pictures/foto13-optimized.jpg",
+      "pictures/foto14-optimized.jpg",
+      "pictures/foto15-optimized.jpg",
+      "pictures/foto17-optimized.jpg",
+      "pictures/foto18-optimized.jpg",
+      "pictures/foto19-optimized.jpg",
+      "pictures/foto20-optimized.jpg",
+      "pictures/foto21-optimized.jpg",
+      "pictures/foto22-optimized.jpg",
+      "pictures/parapente-optimized.jpg"
+    ];
+
+    // Crea thumbnails en la galería
+    images.forEach(src => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = "Foto parapente";
+      img.loading = "lazy";
+      img.onclick = () => {
+        modal.style.display = 'flex';
+        modalImg.src = src;
+      };
+      gallery.appendChild(img);
+    });
+
+    // Cerrar modal al clickar fuera de la imagen
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+        modalImg.src = '';
+      }
+    };
+  </script>
+</body>
+</html> -->
