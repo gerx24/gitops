@@ -20,3 +20,37 @@ docker network create \
   --gateway=192.168.100.1 \
   --driver=bridge \
   dns-net
+
+
+gerson@core:/etc/coredns$ cat Corefile
+.:53 {
+    hosts {
+        172.26.1.99 krakenmoto-fw01.lab
+        192.168.2.1 mac.lab
+        fallthrough
+    }
+    forward . 8.8.8.8 8.8.4.4
+    log
+    errors
+}
+
+
+
+sudo systemctl daemon-reload
+sudo systemctl restart coredns
+sudo systemctl status coredns
+
+gerson@core:/etc/systemd/system$ cat coredns.service
+[Unit]
+Description=CoreDNS DNS server
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/coredns -conf /etc/coredns/Corefile
+Restart=on-failure
+User=root
+Group=root
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target
