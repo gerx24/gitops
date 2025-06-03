@@ -4,6 +4,8 @@ ffmpeg -i parapent.mp4 -vcodec libx264 -profile:v baseline -level 3.0 -pix_fmt y
 ffmpeg -i parapent.mp4 -vf scale=640:-2 -b:v 600k -an parapent_mobile_low.mp4
 ffmpeg -i parapent.mp4 -vcodec libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -preset slow -b:v 1500k -an parapent_mobile.mp4
 ffmpeg -i parapent.mp4 -vf scale=1280:-2 -b:v 1500k -preset slow -an parapent_mobile_720p.mp4
+
+VP9 offers better compression and quality at lower bitrates.
 ffmpeg -i parapent.mp4 -c:v libvpx-vp9 -b:v 1500k -c:a libopus parapent_vp9.webm
 
 
