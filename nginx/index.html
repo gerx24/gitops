@@ -2,82 +2,21 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Parapente Libre</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parapente Libre | Gersonplace</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    /* General Styles */
     body, html {
       margin: 0;
       padding: 0;
       height: 100%;
       background: black;
+      font-family: 'Montserrat', sans-serif;
+      overflow: hidden;
     }
-    video {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      display: block;
-    }
-    .overlay {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: white;
-      background-color: rgba(0,0,0,0.5);
-      padding: 40px;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 90%;
-      z-index: 10;
-      font-family: Arial, sans-serif;
-    }
-    h1 { font-size: 3em; margin-bottom: 0.5em; font-weight: bold; }
-    p { font-size: 1.5em; font-weight: bold; }
-    @media (max-width: 600px) {
-      h1 { font-size: 2em; }
-      p { font-size: 1.2em; }
-    }
-  </style>
-</head>
-<body>
-  <video autoplay muted loop playsinline preload="auto" id="bg-video">
-    <source src="parapent_vp9.webm" type="video/webm" />
-    <source src="parapent_mobile.mp4" type="video/mp4" media="(max-width: 600px)" />
-    <source src="parapent_compressed.mp4" type="video/mp4" media="(min-width: 601px)" />
-    Tu navegador no soporta video HTML5.
-  </video>
 
-  <div class="overlay">
-    <h1>¡AcroparaglidingCR!</h1>
-    <p>El pulso del Parapente en Costa Rica</p>
-  </div>
-</body>
-</html>
-
-<!-- gerson@core:/var/www/site.gersonplace.com/pictures$ cat convert_optimize.sh
-#!/bin/bash
-for img in *.JPG *.jpg *.HEIC *.heic; do
-  [ -f "$img" ] || continue
-  name="${img%.*}"
-  convert "$img" -resize 1920x1080^ -gravity center -extent 1920x1080 -quality 75 "${name}-optimized.jpg"
-  if [ $? -eq 0 ]; then
-    rm "$img"
-  else
-    echo "Error al convertir $img"
-  fi
-done -->
-
-
-<!-- gerson@core:/var/www/site.gersonplace.com$ cat index.html
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <title>Parapente Libre</title>
-  <style>
-    body, html {
-      margin: 0; padding: 0; height: 100%; background: black;
-      font-family: Arial, sans-serif;
-    }
+    /* Video Background */
     video {
       position: fixed;
       top: 0; left: 0;
@@ -85,69 +24,136 @@ done -->
       object-fit: cover;
       z-index: 0;
     }
+
+    /* Overlay (Text Box) */
     .overlay {
       position: fixed;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       color: white;
-      background-color: rgba(0,0,0,0.5);
-      padding: 40px;
-      border-radius: 12px;
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 2.5rem;
+      border-radius: 16px;
       text-align: center;
       max-width: 90%;
+      width: 400px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(6px);
       z-index: 10;
     }
-    h1 { font-size: 3em; margin-bottom: 0.5em; font-weight: bold; }
-    p { font-size: 1.5em; font-weight: bold; }
 
-    /* Galería */
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #FFD700;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px black;
+    }
+
+    .tagline {
+      font-style: italic;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: #ddd;
+    }
+
+    .overlay p {
+      font-size: 1.1rem;
+      margin: 0.4rem 0;
+    }
+
+    /* Gallery Bar */
     #gallery {
       position: fixed;
-      bottom: 10px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 20;
       max-width: 95vw;
-      background: rgba(0,0,0,0.5);
-      padding: 10px;
-      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 12px 16px;
+      border-radius: 16px;
       display: flex;
       gap: 10px;
       overflow-x: auto;
       max-height: 120px;
-    }
-    #gallery img {
-      height: 100px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    #gallery img:hover {
-      transform: scale(1.1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      scrollbar-width: none;
     }
 
-    /* Modal para imagen grande */
+    #gallery::-webkit-scrollbar {
+      display: none;
+    }
+
+    #gallery img {
+      height: 100px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+    }
+
+    #gallery img:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+    }
+
+    /* Modal Viewer */
     #modal {
-      display: none; /* oculto por defecto */
+      display: none;
       position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.8);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.85);
       justify-content: center;
       align-items: center;
       z-index: 1000;
+      animation: fadeIn 0.3s ease;
       cursor: pointer;
     }
+
     #modal img {
       max-width: 90%;
       max-height: 90%;
-      border-radius: 12px;
-      box-shadow: 0 0 20px black;
+      border-radius: 16px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+      transition: transform 0.3s ease;
       cursor: default;
+    }
+
+    #modal img:hover {
+      transform: scale(1.02);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .overlay {
+        width: 90%;
+        padding: 1.5rem;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+      .tagline {
+        font-size: 1.1rem;
+      }
+      .overlay p {
+        font-size: 1rem;
+      }
+      #gallery img {
+        height: 80px;
+      }
     }
   </style>
 </head>
 <body>
 
+  <!-- Background Video -->
   <video autoplay muted loop playsinline preload="auto" id="bg-video">
     <source src="parapent_vp9.webm" type="video/webm" />
     <source src="parapent_mobile.mp4" type="video/mp4" media="(max-width: 600px)" />
@@ -155,28 +161,32 @@ done -->
     Tu navegador no soporta video HTML5.
   </video>
 
+  <!-- Text Overlay -->
   <div class="overlay">
     <h1>¡Gersonplace.com!</h1>
-    <p>Donde el Parapente es una pasión</p>
+    <p class="tagline">Donde el Parapente es una pasión</p>
+    <p><strong>Correo:</strong> acroparaglidingcr@gmail.com</p>
+    <p><strong>Whatsapp:</strong> +506-6426-7543</p>
   </div>
 
+  <!-- Gallery -->
   <div id="gallery"></div>
 
+  <!-- Modal -->
   <div id="modal">
     <img id="modal-img" alt="Imagen grande" />
   </div>
 
+  <!-- JavaScript -->
   <script>
     const gallery = document.getElementById('gallery');
     const modal = document.getElementById('modal');
     const modalImg = document.getElementById('modal-img');
 
-    // Lista estática de imágenes optimizadas en carpeta 'pictures' (debes crearla y subirlas ahí)
     const images = [
       "pictures/foto1-optimized.jpg",
       "pictures/foto2-optimized.jpg",
       "pictures/foto3-optimized.jpg",
-      "pictures/foto4-optimized.jpg",
       "pictures/foto5-optimized.jpg",
       "pictures/foto6-optimized.jpg",
       "pictures/foto7-optimized.jpg",
@@ -184,20 +194,13 @@ done -->
       "pictures/foto9-optimized.jpg",
       "pictures/foto10-optimized.jpg",
       "pictures/foto11-optimized.jpg",
-      "pictures/foto12-optimized.jpg",
-      "pictures/foto13-optimized.jpg",
-      "pictures/foto14-optimized.jpg",
       "pictures/foto15-optimized.jpg",
-      "pictures/foto17-optimized.jpg",
       "pictures/foto18-optimized.jpg",
-      "pictures/foto19-optimized.jpg",
-      "pictures/foto20-optimized.jpg",
       "pictures/foto21-optimized.jpg",
       "pictures/foto22-optimized.jpg",
       "pictures/parapente-optimized.jpg"
     ];
 
-    // Crea thumbnails en la galería
     images.forEach(src => {
       const img = document.createElement('img');
       img.src = src;
@@ -210,7 +213,6 @@ done -->
       gallery.appendChild(img);
     });
 
-    // Cerrar modal al clickar fuera de la imagen
     modal.onclick = (e) => {
       if (e.target === modal) {
         modal.style.display = 'none';
@@ -219,4 +221,4 @@ done -->
     };
   </script>
 </body>
-</html> -->
+</html>
