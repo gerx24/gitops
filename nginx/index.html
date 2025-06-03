@@ -2,21 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parapente Libre | Gersonplace</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Parapente Libre</title>
   <style>
-    /* General Styles */
     body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background: black;
-      font-family: 'Montserrat', sans-serif;
-      overflow: hidden;
+      margin: 0; padding: 0; height: 100%; background: black;
+      font-family: Arial, sans-serif;
     }
-
-    /* Video Background */
     video {
       position: fixed;
       top: 0; left: 0;
@@ -24,136 +15,108 @@
       object-fit: cover;
       z-index: 0;
     }
-
-    /* Overlay (Text Box) */
     .overlay {
       position: fixed;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       color: white;
-      background-color: rgba(0, 0, 0, 0.6);
-      padding: 2.5rem;
-      border-radius: 16px;
+      background-color: rgba(0,0,0,0.5);
+      padding: 40px;
+      border-radius: 12px;
       text-align: center;
       max-width: 90%;
-      width: 400px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(6px);
       z-index: 10;
     }
-
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      color: #FFD700;
-      font-weight: 700;
-      text-shadow: 2px 2px 4px black;
+    h1 { font-size: 3em; margin-bottom: 0.5em; font-weight: bold; }
+    p { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; }
+    .language-toggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 100;
+      background-color: rgba(0,0,0,0.6);
+      padding: 10px 15px;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
     }
-
-    .tagline {
-      font-style: italic;
-      font-size: 1.3rem;
-      margin-bottom: 1rem;
-      color: #ddd;
+    .flag {
+      height: 20px;
+      margin-left: 10px;
+      vertical-align: middle;
     }
-
-    .overlay p {
-      font-size: 1.1rem;
-      margin: 0.4rem 0;
+    .social-icons {
+      margin-top: 10px;
     }
-
-    /* Gallery Bar */
+    .social-icon {
+      width: 32px;
+      height: 32px;
+      margin: 0 8px;
+      vertical-align: middle;
+    }
+    .map-button {
+      margin-top: 1em;
+      background: #28a745;
+      color: white;
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .map-button:hover {
+      background: #218838;
+    }
     #gallery {
       position: fixed;
-      bottom: 20px;
+      bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 20;
       max-width: 95vw;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 12px 16px;
-      border-radius: 16px;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      border-radius: 12px;
       display: flex;
       gap: 10px;
       overflow-x: auto;
       max-height: 120px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-      scrollbar-width: none;
     }
-
-    #gallery::-webkit-scrollbar {
-      display: none;
-    }
-
     #gallery img {
       height: 100px;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+      transition: transform 0.2s;
     }
-
     #gallery img:hover {
       transform: scale(1.1);
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
     }
-
-    /* Modal Viewer */
     #modal {
       display: none;
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.85);
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.8);
       justify-content: center;
       align-items: center;
       z-index: 1000;
-      animation: fadeIn 0.3s ease;
       cursor: pointer;
     }
-
     #modal img {
       max-width: 90%;
       max-height: 90%;
-      border-radius: 16px;
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
-      transition: transform 0.3s ease;
-      cursor: default;
-    }
-
-    #modal img:hover {
-      transform: scale(1.02);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      .overlay {
-        width: 90%;
-        padding: 1.5rem;
-      }
-      h1 {
-        font-size: 2rem;
-      }
-      .tagline {
-        font-size: 1.1rem;
-      }
-      .overlay p {
-        font-size: 1rem;
-      }
-      #gallery img {
-        height: 80px;
-      }
+      border-radius: 12px;
+      box-shadow: 0 0 20px black;
     }
   </style>
 </head>
 <body>
 
-  <!-- Background Video -->
+  <div class="language-toggle" onclick="toggleLanguage()">
+    ES / EN
+    <img src="https://flagcdn.com/w40/cr.png" class="flag" alt="Costa Rica Flag">
+  </div>
+
   <video autoplay muted loop playsinline preload="auto" id="bg-video">
     <source src="parapent_vp9.webm" type="video/webm" />
     <source src="parapent_mobile.mp4" type="video/mp4" media="(max-width: 600px)" />
@@ -161,23 +124,45 @@
     Tu navegador no soporta video HTML5.
   </video>
 
-  <!-- Text Overlay -->
-  <div class="overlay">
-    <h1>¡Gersonplace.com!</h1>
-    <p class="tagline">Donde el Parapente es una pasión</p>
-    <p><strong>Correo:</strong> acroparaglidingcr@gmail.com</p>
-    <p><strong>Whatsapp:</strong> +506-6426-7543</p>
+  <div class="overlay" id="content-es">
+    <h1>Gersonplace.com</h1>
+    <p>Donde el Parapente es una pasión</p>
+    <div class="social-icons">
+      <a href="mailto:acroparaglidingcr@gmail.com">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png" alt="Gmail" class="social-icon">
+      </a>
+      <a href="https://instagram.com/gerson.morales.cr" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" class="social-icon">
+      </a>
+      <a href="https://wa.me/50664267543" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="social-icon">
+      </a>
+    </div>
+    <button class="map-button" onclick="window.open('https://www.google.com/maps/place/Para%C3%ADso,+Cartago,+Costa+Rica', '_blank')">Encuéntranos</button>
   </div>
 
-  <!-- Gallery -->
-  <div id="gallery"></div>
+  <div class="overlay" id="content-en" style="display:none;">
+    <h1>Welcome to Gersonplace.com</h1>
+    <p>Where Paragliding is a passion</p>
+    <div class="social-icons">
+      <a href="mailto:acroparaglidingcr@gmail.com">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png" alt="Gmail" class="social-icon">
+      </a>
+      <a href="https://instagram.com/gerson.morales.cr" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" class="social-icon">
+      </a>
+      <a href="https://wa.me/50664267543" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="social-icon">
+      </a>
+    </div>
+    <button class="map-button" onclick="window.open('https://www.google.com/maps/place/Para%C3%ADso,+Cartago,+Costa+Rica', '_blank')">Find Us</button>
+  </div>
 
-  <!-- Modal -->
+  <div id="gallery"></div>
   <div id="modal">
     <img id="modal-img" alt="Imagen grande" />
   </div>
 
-  <!-- JavaScript -->
   <script>
     const gallery = document.getElementById('gallery');
     const modal = document.getElementById('modal');
@@ -219,6 +204,18 @@
         modalImg.src = '';
       }
     };
+
+    function toggleLanguage() {
+      const es = document.getElementById('content-es');
+      const en = document.getElementById('content-en');
+      if (es.style.display === 'none') {
+        es.style.display = 'block';
+        en.style.display = 'none';
+      } else {
+        es.style.display = 'none';
+        en.style.display = 'block';
+      }
+    }
   </script>
 </body>
 </html>
