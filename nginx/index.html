@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Parapente Libre</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: black;
+    }
+    video {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      display: block;
+    }
+    .overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      background-color: rgba(0,0,0,0.5);
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 90%;
+      z-index: 10;
+      font-family: Arial, sans-serif;
+    }
+    h1 { font-size: 3em; margin-bottom: 0.5em; font-weight: bold; }
+    p { font-size: 1.5em; font-weight: bold; }
+    @media (max-width: 600px) {
+      h1 { font-size: 2em; }
+      p { font-size: 1.2em; }
+    }
+  </style>
+</head>
+<body>
+  <video autoplay muted loop playsinline preload="auto" id="bg-video">
+    <source src="parapent_vp9.webm" type="video/webm" />
+    <source src="parapent_mobile.mp4" type="video/mp4" media="(max-width: 600px)" />
+    <source src="parapent_compressed.mp4" type="video/mp4" media="(min-width: 601px)" />
+    Tu navegador no soporta video HTML5.
+  </video>
+
+  <div class="overlay">
+    <h1>¡AcroparaglidingCR!</h1>
+    <p>El pulso del Parapente en Costa Rica</p>
+  </div>
+</body>
+</html>
