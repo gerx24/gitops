@@ -3,71 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <title>Gersonplace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
   <style>
-    body, html {
-      margin: 0; padding: 0; height: 100%; background: black;
-      font-family: Arial, sans-serif;
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Montserrat', sans-serif;
+      background: black;
+      overflow: hidden;
     }
-    video:not(.half-video) {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
+    .video-container {
+      display: flex;
       height: 100vh;
-      object-fit: cover;
+      width: 100vw;
+      position: fixed;
+      top: 0;
+      left: 0;
       z-index: 0;
+    }
+    .half-video {
+      width: 50%;
+      height: 100%;
+      object-fit: cover;
     }
     .overlay {
       position: fixed;
-      top: 50%; left: 50%;
+      top: 50%;
+      left: 50%;
       transform: translate(-50%, -50%);
       color: white;
-      background-color: rgba(0,0,0,0.5);
-      padding: 40px;
-      border-radius: 12px;
+      background-color: rgba(0, 0, 0, 0.55);
+      padding: 40px 30px;
+      border-radius: 16px;
       text-align: center;
       max-width: 90%;
       z-index: 10;
+      animation: fadeIn 1s ease-in;
     }
-    h1 { font-size: 3em; margin-bottom: 0.5em; font-weight: bold; }
-    p { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -60%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+    h1 {
+      font-size: 2.5em;
+      font-weight: 700;
+      margin-bottom: 0.3em;
+    }
+    p {
+      font-size: 1.3em;
+      font-weight: 500;
+      margin: 0.5em 0;
+    }
     .language-toggle {
       position: fixed;
       top: 10px;
       right: 10px;
       z-index: 100;
-      background-color: rgba(0,0,0,0.6);
+      background-color: rgba(0, 0, 0, 0.6);
       padding: 10px 15px;
       border-radius: 8px;
       color: white;
       cursor: pointer;
       font-weight: bold;
+      font-size: 0.9em;
     }
     .flag {
       height: 20px;
-      margin-left: 10px;
+      margin-left: 8px;
       vertical-align: middle;
     }
     .social-icons {
-      margin-top: 10px;
+      margin-top: 12px;
     }
     .social-icon {
-      width: 32px;
-      height: 32px;
-      margin: 0 8px;
+      width: 34px;
+      height: 34px;
+      margin: 0 10px;
       vertical-align: middle;
+      transition: transform 0.2s;
+    }
+    .social-icon:hover {
+      transform: scale(1.2);
     }
     .map-button {
-      margin-top: 1em;
+      margin-top: 1.5em;
       background: #28a745;
       color: white;
-      padding: 10px 20px;
+      padding: 12px 24px;
       font-size: 1em;
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
     .map-button:hover {
-      background: #218838;
+      background: #1e7e34;
     }
     #gallery {
       position: fixed;
@@ -76,7 +109,7 @@
       transform: translateX(-50%);
       z-index: 20;
       max-width: 95vw;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
       padding: 10px;
       border-radius: 12px;
       display: flex;
@@ -96,8 +129,11 @@
     #modal {
       display: none;
       position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.8);
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.85);
       justify-content: center;
       align-items: center;
       z-index: 1000;
@@ -107,87 +143,62 @@
       max-width: 90%;
       max-height: 90%;
       border-radius: 12px;
-      box-shadow: 0 0 20px black;
+      box-shadow: 0 0 30px black;
     }
-    .video-container {
-      display: flex;
-      height: 100vh;
-      width: 100vw;
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 0;
-    }
-
-    .half-video {
-      width: 50%;
-      height: 100%;
-      object-fit: cover;
+    @media screen and (max-width: 768px) {
+      h1 { font-size: 2em; }
+      p { font-size: 1.1em; }
+      .map-button { width: 100%; }
     }
   </style>
 </head>
 <body>
 
   <div class="language-toggle" onclick="toggleLanguage()">
-    ES / EN
-    <img src="https://flagcdn.com/w40/cr.png" class="flag" alt="Costa Rica Flag">
+    ES / EN <img src="https://flagcdn.com/w40/cr.png" class="flag" alt="Costa Rica Flag">
   </div>
 
-<div class="video-container">
-  <video autoplay muted loop playsinline preload="auto" class="half-video">
-    <source src="parapent_vp9.webm" type="video/webm" />
-    <source src="parapent_mobile.mp4" type="video/mp4" media="(max-width: 600px)" />
-    <source src="parapent_compressed.mp4" type="video/mp4" media="(min-width: 601px)" />
-    Tu navegador no soporta video HTML5.
-  </video>
+  <div class="video-container">
+    <video autoplay muted loop playsinline preload="auto" class="half-video">
+      <source src="parapent_vp9.webm" type="video/webm" />
+      <source src="parapent_mobile.mp4" type="video/mp4" media="(max-width: 600px)" />
+      <source src="parapent_compressed.mp4" type="video/mp4" media="(min-width: 601px)" />
+      Tu navegador no soporta video HTML5.
+    </video>
+    <video autoplay muted loop playsinline preload="auto" class="half-video">
+      <source src="parapent2_vp9.webm" type="video/webm" />
+      <source src="parapent2_mobile.mp4" type="video/mp4" media="(max-width: 600px)" />
+      <source src="parapent2_mobile_720p.mp4" type="video/mp4" media="(min-width: 601px)" />
+      Tu navegador no soporta video HTML5.
+    </video>
+  </div>
 
-  <video autoplay muted loop playsinline preload="auto" class="half-video">
-    <source src="parapent2_vp9.webm" type="video/webm" />
-    <source src="parapent2_mobile.mp4" type="video/mp4" media="(max-width: 600px)" />
-    <source src="parapent2_mobile_720p.mp4" type="video/mp4" media="(min-width: 601px)" />
-    Tu navegador no soporta video HTML5.
-  </video>
-</div>
-
-
+  <!-- Spanish Content -->
   <div class="overlay" id="content-es">
     <h1>Bienvenidos a Gersonplace.com</h1>
     <p>Donde el Parapente es una pasión</p>
     <div class="social-icons">
-      <a href="mailto:acroparaglidingcr@gmail.com">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png" alt="Gmail" class="social-icon">
-      </a>
-      <a href="https://instagram.com/gerson.morales.cr" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" class="social-icon">
-      </a>
-      <a href="https://wa.me/50664267543" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="social-icon">
-      </a>
+      <a href="mailto:acroparaglidingcr@gmail.com"><img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png" alt="Gmail" class="social-icon" /></a>
+      <a href="https://instagram.com/gerson.morales.cr" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" class="social-icon" /></a>
+      <a href="https://wa.me/50664267543" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="social-icon" /></a>
     </div>
     <button class="map-button" onclick="window.open('https://www.google.com/maps/place/Para%C3%ADso,+Cartago,+Costa+Rica', '_blank')">Encuéntranos</button>
   </div>
 
+  <!-- English Content -->
   <div class="overlay" id="content-en" style="display:none;">
     <h1>Welcome to Gersonplace.com</h1>
     <p>Where Paragliding is a passion</p>
     <div class="social-icons">
-      <a href="mailto:acroparaglidingcr@gmail.com">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png" alt="Gmail" class="social-icon">
-      </a>
-      <a href="https://instagram.com/gerson.morales.cr" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" class="social-icon">
-      </a>
-      <a href="https://wa.me/50664267543" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="social-icon">
-      </a>
+      <a href="mailto:acroparaglidingcr@gmail.com"><img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png" alt="Gmail" class="social-icon" /></a>
+      <a href="https://instagram.com/gerson.morales.cr" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" class="social-icon" /></a>
+      <a href="https://wa.me/50664267543" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="social-icon" /></a>
     </div>
     <button class="map-button" onclick="window.open('https://www.google.com/maps/place/Para%C3%ADso,+Cartago,+Costa+Rica', '_blank')">Find Us</button>
   </div>
 
   <div id="gallery"></div>
-  <div id="modal">
-    <img id="modal-img" alt="Imagen grande" />
-  </div>
+  <div id="modal"><img id="modal-img" alt="Imagen grande" /></div>
 
   <script>
     const gallery = document.getElementById('gallery');
